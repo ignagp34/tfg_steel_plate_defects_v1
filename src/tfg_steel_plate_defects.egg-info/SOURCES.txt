@@ -1,0 +1,6 @@
+README.txt
+setup.py
+src/tfg_steel_plate_defects.egg-info/PKG-INFO
+src/tfg_steel_plate_defects.egg-info/SOURCES.txt
+src/tfg_steel_plate_defects.egg-info/dependency_links.txt
+src/tfg_steel_plate_defects.egg-info/top_level.txt

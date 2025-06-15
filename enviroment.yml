@@ -1,0 +1,24 @@
+name: TFG-steelplate
+channels:
+  - defaults
+  - conda-forge
+
+dependencies:
+  - python=3.9
+  - numpy=2.0.2
+  - pandas=2.2.3
+  - scikit-learn=1.6.1
+  - xgboost=1.7.5
+  - lightgbm=4.6.0
+  - optuna=4.2.1
+  - imbalanced-learn=0.12.4
+  - iterative-stratification=0.1.9
+  - matplotlib=3.9.4
+  - seaborn=0.13.2
+  - joblib=1.4.2
+  - shap=0.41.0
+  - ipykernel=6.29.5
+  - tqdm=4.67.1
+  - pip
+  - pip:
+      - mlflow==2.4.1       

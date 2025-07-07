@@ -44,7 +44,7 @@ class TrainerConfig:
     """Container for all run-time hyper-parameters handled by the CLI."""
 
     n_splits: int = 5
-    oversample: bool = True
+    oversample: bool = False
     random_state: int = RANDOM_STATE
     model_name: str = "lgbm"
     model_dir: Path = MODEL_DIR

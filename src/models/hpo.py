@@ -13,6 +13,7 @@ from sklearn.metrics import roc_auc_score
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.neural_network import MLPClassifier  # ➜ nuevo import
 
 try:
     from lightgbm import LGBMClassifier
@@ -35,7 +36,7 @@ from src.models.trainer import _compute_pos_weights
 # ---------------------------------------------------------------------------
 
 def _strip_prefixes(params: dict[str, Any]) -> dict[str, Any]:
-    """Quita prefijos (``rf_``, ``lgb_``, ``lr_``) de los hiperparámetros.
+    """Quita prefijos (``rf_``, ``lgb_``, ``lr_``, ``mlp_``) de los hiperparámetros.
 
     Optuna usa prefijos para evitar colisiones entre modelos (p.ej. ``lgb_num_leaves``),
     pero el estimador final —``LGBMClassifier``, ``RandomForestClassifier``, etc.— sólo
@@ -45,7 +46,7 @@ def _strip_prefixes(params: dict[str, Any]) -> dict[str, Any]:
     """
     cleaned: dict[str, Any] = {}
     for key, value in params.items():
-        if key.startswith(("rf_", "lgb_", "lr_")):
+        if key.startswith(("rf_", "lgb_", "lr_", "mlp_")):
             cleaned[key.split("_", 1)[1]] = value  # quita el prefijo y conserva el resto
         else:
             cleaned[key] = value
@@ -111,10 +112,32 @@ def build_model_from_trial(model_name: str, trial: optuna.Trial, pos_weights: li
                     n_jobs            = -1,
                     scale_pos_weight  = w,
                     verbosity         = -1,
+                    verbose           = -1,
                     min_gain_to_split = 0.0,
                 )
             )
         return estimators  # list[LGBMClassifier]
+
+    # -----------------------------------------------------------------------
+    # ➜ Nuevo modelo: MLP
+    # -----------------------------------------------------------------------
+    if model_name == "mlp":
+        n_layers = trial.suggest_int("mlp_n_layers", 1, 3)
+        n_units  = trial.suggest_int("mlp_hidden_units", 32, 512, step=32)
+        hidden   = (n_units,) * n_layers
+
+        base = MLPClassifier(
+            hidden_layer_sizes = hidden,
+            activation         = trial.suggest_categorical("mlp_activation", ["relu", "tanh"]),
+            solver             = "adam",
+            alpha              = trial.suggest_float("mlp_alpha", 1e-5, 1e-1, log=True),
+            learning_rate_init = trial.suggest_float("mlp_learning_rate_init", 1e-4, 1e-2, log=True),
+            batch_size         = "auto",
+            random_state       = RANDOM_STATE,
+            max_iter           = 200,          
+            early_stopping     = True,  
+        )
+        return MultiOutputClassifier(base, n_jobs=-1)
 
     raise ValueError(f"Modelo '{model_name}' no soportado.")
 
@@ -146,7 +169,7 @@ def _objective(trial: optuna.Trial, model_name: str, X, y, train_idx, folds):  #
             for k, clf in enumerate(model):  # noqa: WPS518 (explicit index OK)
                 clf.fit(X_tr, y_tr[:, k])
             y_hat = np.stack([clf.predict_proba(X_va)[:, 1] for clf in model], axis=1)
-        else:  # MultiOutput wrapper (RF / LogReg)
+        else:  # MultiOutput wrapper (RF / LogReg / MLP)
             model.fit(X_tr, y_tr)
             y_hat = np.stack([p[:, 1] for p in model.predict_proba(X_va)], axis=1)
 
@@ -204,7 +227,7 @@ def run_hpo(model_name: str, n_trials: int = 50, n_splits: int = 5):  # noqa: WP
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Hyper-parameter optimisation (Optuna)")
-    parser.add_argument("model", choices=["rf", "logreg", "lgbm"], help="Modelo a optimizar")
+    parser.add_argument("model", choices=["rf", "logreg", "lgbm", "mlp"], help="Modelo a optimizar")
     parser.add_argument("--trials", type=int, default=50, help="Número de ensayos de Optuna")
     parser.add_argument("--n-splits", type=int, default=5, help="Nº de folds CV en cada ensayo")
     args = parser.parse_args()

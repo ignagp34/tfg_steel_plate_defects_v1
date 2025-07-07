@@ -1,0 +1,7 @@
+{
+  "n_layers": 3,
+  "hidden_units": 128,
+  "activation": "tanh",
+  "alpha": 0.00016480446427978953,
+  "learning_rate_init": 0.0011207606211860567
+}

@@ -21,8 +21,8 @@ jupyter notebook
 
 ## Descarga de modelos y datos
 
-1. [Describe aquí cómo obtener los archivos de modelos o datos, si es necesario.]
-2. [Indica en qué carpeta deben colocarse.]
+1. Seguir los notebooks o utilizar comandos p.e: "python -m src.cli.train --n-splits 5 --model-name lgbm --no-oversample"
+2. \src\visualization\eda.py  para generar gráficas
 
 ---
 ## Requisitos previos

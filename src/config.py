@@ -26,7 +26,7 @@ STATS_PATH = ROOT_DIR / "reports/tables/summary_statistics.csv"
 REPORT_DIR = ROOT_DIR / "reports/tables"
 
 # Carpeta para modelos serializados y artefactos
-MODEL_DIR = ROOT_DIR / "models"
+MODEL_DIR = ROOT_DIR / "models_artifacts"
 
 # Hiperparámetros
 HPO_DIR    = ROOT_DIR / "reports/hpo"
